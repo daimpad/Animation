@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 
@@ -23,8 +24,11 @@ def generate_svg_from_prompt(prompt_file: str, output_file: str) -> None:
 
 
 if __name__ == "__main__":
-    # Beispielaufruf
-    generate_svg_from_prompt(
-        prompt_file="inputs/prompts/circle_to_spiral.txt",
-        output_file="outputs/svg/circle_to_spiral.svg",
-    )
+    # Pfade aus den Argumenten oder Standardwerte verwenden
+    if len(sys.argv) == 3:
+        generate_svg_from_prompt(sys.argv[1], sys.argv[2])
+    else:
+        generate_svg_from_prompt(
+            prompt_file="inputs/prompts/circle_to_spiral.txt",
+            output_file="outputs/svg/circle_to_spiral.svg",
+        )

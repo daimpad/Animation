@@ -1,0 +1,80 @@
+name: Generate Animation from Prompt
+
+# Workflow wird ausgelöst, wenn neue/geänderte Dateien in inputs/prompts/ gepusht werden
+on:
+  push:
+    paths:
+      - 'inputs/prompts/**'
+
+# Schreibrechte, damit der Workflow generierte Dateien zurück committen kann
+permissions:
+  contents: write
+
+jobs:
+  generate-animation:
+    name: Generate and Validate Animation
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Repository auschecken
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Wichtig für git history bei späteren Commits
+
+      # 2. Python einrichten
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 3. System-Abhängigkeiten (cairo für reportlab/pycairo)
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev pkg-config
+
+      # 4. Python-Abhängigkeiten installieren
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 5. SVG/Lottie aus allen Prompts generieren
+      - name: Generate SVG/Lottie from Prompts
+        run: |
+          shopt -s nullglob
+          for prompt_file in inputs/prompts/*.txt; do
+            filename=$(basename "$prompt_file" .txt)
+            echo "Verarbeite Prompt: $filename"
+            python scripts/generate_svg.py "$prompt_file" "outputs/svg/${filename}.svg"
+            python scripts/generate_lottie.py "$prompt_file" "outputs/lottie/${filename}.json"
+          done
+
+      # 6. Generierte Dateien validieren und SVGs optimieren
+      - name: Validate and Optimize Generated Files
+        run: |
+          shopt -s nullglob
+          for lottie_file in outputs/lottie/*.json; do
+            python scripts/validate_json.py "$lottie_file"
+          done
+          # Bereits optimierte Dateien überspringen, um Endlos-Suffixe zu vermeiden
+          for svg_file in outputs/svg/*.svg; do
+            case "$svg_file" in
+              *_optimized.svg) continue ;;
+            esac
+            python scripts/optimize_svg.py "$svg_file" "${svg_file%.svg}_optimized.svg"
+          done
+
+      # 7. Änderungen committen und pushen (nur wenn es welche gibt)
+      - name: Commit and Push Generated Files
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add outputs/
+          if git diff --staged --quiet; then
+            echo "Keine Änderungen zu committen."
+          else
+            git commit -m "🤖 Auto-generated animations from prompts [skip ci]"
+            git push
+          fi
