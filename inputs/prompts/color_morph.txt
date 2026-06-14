@@ -1,0 +1,5 @@
+Erstelle eine Lottie-Animation:
+- Ein Quadrat (100x100px, Position: 50,50) ändert die Farbe von Grün (#00FF00) zu Gelb (#FFFF00).
+- Gleichzeitig rotiert es um 360 Grad.
+- Dauer: 2 Sekunden, 60 FPS.
+- Exportiere als Lottie-JSON.
