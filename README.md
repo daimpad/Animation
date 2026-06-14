@@ -95,6 +95,17 @@ animation-pipeline/
 
 ---
 
+## 🤖 Automatisierung (GitHub Actions)
+
+Das Repository enthält zwei Workflows unter `.github/workflows/`:
+
+- **`ci.yml`** – führt bei jedem Push/PR alle vier Pipeline-Skripte als Smoke-Test aus.
+- **`generate.yml`** – wird ausgelöst, sobald Dateien in `inputs/prompts/` geändert werden. Er generiert für jeden Prompt automatisch SVG/Lottie, validiert/optimiert die Ergebnisse und committet sie zurück nach `outputs/`.
+
+> Hinweis: Für `generate.yml` werden Schreibrechte benötigt. Diese sind im Workflow über `permissions: contents: write` gesetzt; alternativ unter **Settings → Actions → General → Workflow permissions** *Read and write permissions* aktivieren.
+
+---
+
 ## 🔗 Nützliche Links
 - [Lottie-Web](https://github.com/airbnb/lottie-web) (für Lottie-Animationen)
 - [Inkscape](https://inkscape.org/) (für SVG-Bearbeitung)
