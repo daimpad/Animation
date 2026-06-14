@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  pipeline-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate SVG
+        run: python scripts/generate_svg.py
+
+      - name: Generate Lottie
+        run: python scripts/generate_lottie.py
+
+      - name: Validate Lottie JSON
+        run: python scripts/validate_json.py outputs/lottie/circle_to_spiral.json
+
+      - name: Optimize SVG
+        run: python scripts/optimize_svg.py outputs/svg/circle_to_spiral.svg
