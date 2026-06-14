@@ -1,0 +1,5 @@
+Erstelle eine SVG-Animation:
+- Ein Kreis (Radius: 50px, Position: 100,100) verwandelt sich in eine Spirale (3 Umdrehungen).
+- Farbe wechselt von Blau (#0000FF) zu Rot (#FF0000).
+- Dauer: 3 Sekunden, 60 FPS.
+- Exportiere als SVG.
