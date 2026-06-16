@@ -13,3 +13,6 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Test-Caches
+.pytest_cache/
