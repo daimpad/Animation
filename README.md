@@ -82,7 +82,22 @@ python scripts/validate_json.py outputs/lottie/circle_to_spiral.json
 python scripts/optimize_svg.py outputs/svg/circle_to_spiral.svg
 ```
 
-### 5. Manuell bearbeiten (optional)
+### 5. Vorschau im Browser
+Im Ordner `preview/` liegt ein eigenständiger Viewer (`index.html`), der SVG- und
+Lottie-Animationen rendert (Lottie via `lottie-web` vom CDN).
+
+- **Schnell:** `preview/index.html` direkt im Browser öffnen und eine `.svg`- oder
+  `.json`-Datei wählen bzw. per Drag & Drop ablegen.
+- **Mit Pfad-Laden:** Repo lokal ausliefern und `/preview/` öffnen, dann lassen sich
+  Dateien direkt über ihren Pfad laden:
+  ```bash
+  python -m http.server 8000
+  # -> http://localhost:8000/preview/
+  ```
+  (Der direkte `file://`-Aufruf kann das Laden per Pfad aus Sicherheitsgründen
+  blockieren; die Datei-Auswahl funktioniert aber immer.)
+
+### 6. Manuell bearbeiten (optional)
 - **SVG:** Öffne die Datei in [Inkscape](https://inkscape.org/).
 - **Lottie:** Bearbeite die Datei im [LottieFiles Editor](https://lottiefiles.com/).
 
@@ -102,6 +117,8 @@ animation-pipeline/
 │   └── optimize_svg.py
 ├── tests/                # pytest-Tests
 │   └── test_pipeline.py
+├── preview/              # Browser-Viewer für SVG/Lottie
+│   └── index.html
 ├── outputs/              # Generierte Animationen
 │   ├── svg/
 │   └── lottie/
