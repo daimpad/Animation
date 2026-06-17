@@ -149,3 +149,12 @@ Das Repository enthält zwei Workflows unter `.github/workflows/`:
 - [Inkscape](https://inkscape.org/) (für SVG-Bearbeitung)
 - [Ollama](https://ollama.com/) (für lokale LLM-Nutzung)
 - [SVGOMG](https://jakearchibald.github.io/svgomg/) (für SVG-Optimierung)
+
+---
+
+## 🤝 Beitragen
+Beiträge sind willkommen! Siehe [CONTRIBUTING.md](CONTRIBUTING.md) für Setup,
+Tests und Richtlinien.
+
+## 📄 Lizenz
+Veröffentlicht unter der [MIT-Lizenz](LICENSE).
