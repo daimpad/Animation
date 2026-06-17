@@ -9,6 +9,7 @@ import generate_svg  # noqa: E402
 import generate_lottie  # noqa: E402
 import validate_json  # noqa: E402
 import optimize_svg  # noqa: E402
+import llm  # noqa: E402
 
 
 def test_generate_svg_creates_valid_svg(tmp_path):
@@ -63,3 +64,44 @@ def test_optimize_svg_preserves_content(tmp_path):
     optimize_svg.optimize_svg(str(src), str(dst))
     assert dst.exists()
     assert dst.read_text() == "<svg><circle r='1'/></svg>"
+
+
+# --- LLM-Hilfsfunktionen (ohne Netzwerk) ---
+
+
+def test_extract_svg_from_text():
+    text = "Hier ist dein SVG:\n<svg width='1'><rect/></svg>\nViel Spaß!"
+    assert llm.extract_svg(text) == "<svg width='1'><rect/></svg>"
+
+
+def test_extract_svg_returns_none_without_svg():
+    assert llm.extract_svg("kein svg hier") is None
+    assert llm.extract_svg(None) is None
+
+
+def test_extract_json_from_code_fence():
+    text = "```json\n{\"a\": 1, \"b\": [2, 3]}\n```"
+    assert llm.extract_json(text) == {"a": 1, "b": [2, 3]}
+
+
+def test_extract_json_from_plain_text():
+    text = "Antwort: {\"x\": true} -- fertig"
+    assert llm.extract_json(text) == {"x": True}
+
+
+def test_extract_json_returns_none_on_garbage():
+    assert llm.extract_json("kein json") is None
+    assert llm.extract_json(None) is None
+
+
+def test_query_ollama_unreachable_returns_none(monkeypatch):
+    # Aufruf gegen einen sicher geschlossenen Port -> None statt Exception
+    monkeypatch.setattr(llm, "OLLAMA_URL", "http://127.0.0.1:1")
+    assert llm.query_ollama("test", timeout=2) is None
+
+
+def test_generate_lottie_falls_back_without_llm(tmp_path):
+    out = tmp_path / "fallback.json"
+    generate_lottie.generate_lottie_from_prompt("kein-prompt.txt", str(out), use_llm=False)
+    data = json.loads(out.read_text())
+    assert data == generate_lottie.PLACEHOLDER_LOTTIE

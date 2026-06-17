@@ -40,9 +40,25 @@ Erstelle eine SVG-Animation:
 ```
 
 ### 2. LLM generiert Code
-Füttere den Prompt in dein LLM (z. B. Ollama) und speichere die Ausgabe in `inputs/templates/` oder direkt in `outputs/`.
+Die `generate_*`-Skripte sprechen automatisch ein **lokales Ollama** an: Sie lesen den
+Prompt aus der Datei, schicken ihn an das Modell und extrahieren den SVG- bzw.
+Lottie-Code aus der Antwort. Ist Ollama **nicht erreichbar** (oder liefert keine
+verwertbare Ausgabe), wird transparent auf eine Platzhalter-Ausgabe zurückgegriffen –
+die Pipeline läuft also auch ohne LLM durch.
 
-Beispiel-Prompt für Ollama:
+Konfiguration über Umgebungsvariablen:
+
+| Variable | Standard | Beschreibung |
+|----------|----------|--------------|
+| `OLLAMA_URL` | `http://localhost:11434` | Basis-URL des Ollama-Servers |
+| `OLLAMA_MODEL` | `mistral` | Zu verwendendes Modell |
+
+```bash
+# Beispiel: anderes Modell verwenden
+OLLAMA_MODEL=llama3 python scripts/generate_svg.py inputs/prompts/circle_to_spiral.txt outputs/svg/circle_to_spiral.svg
+```
+
+Alternativ kannst du das LLM auch manuell ansprechen und die Ausgabe selbst ablegen:
 ```bash
 ollama run mistral "Erstelle eine SVG-Animation für folgende Beschreibung: Ein Kreis (Radius: 50px, Position: 100,100) verwandelt sich in eine Spirale (3 Umdrehungen). Farbe wechselt von Blau (#0000FF) zu Rot (#FF0000). Dauer: 3 Sekunden. Gib den SVG-Code direkt aus."
 ```
@@ -79,18 +95,23 @@ animation-pipeline/
 │   ├── prompts/          # Textdateien mit Animation-Beschreibungen
 │   └── templates/        # Vorlagen für SVG/Lottie
 ├── scripts/              # Python-Skripte
+│   ├── llm.py            # Optionale Ollama-Anbindung (nur stdlib)
 │   ├── generate_svg.py
 │   ├── generate_lottie.py
 │   ├── validate_json.py
 │   └── optimize_svg.py
+├── tests/                # pytest-Tests
+│   └── test_pipeline.py
 ├── outputs/              # Generierte Animationen
 │   ├── svg/
 │   └── lottie/
 ├── docs/                 # Dokumentation
 │   ├── pipeline_guide.md
 │   └── examples.md
+├── .github/workflows/    # CI- und Generate-Workflows
 ├── README.md
-└── requirements.txt
+├── requirements.txt
+└── requirements-dev.txt
 ```
 
 ---
