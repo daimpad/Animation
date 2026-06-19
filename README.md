@@ -146,10 +146,11 @@ GitHub Actions auf GitHub Pages veröffentlicht:
 Die Galerie zeigt die SVG-Animation direkt eingebettet und rendert das
 Lottie-Beispiel über `lottie-web`.
 
-> **Einmalig aktivieren:** In **Settings → Pages → Build and deployment** als
-> *Source* **„GitHub Actions"** wählen. Danach deployt der Workflow
-> [`pages.yml`](.github/workflows/pages.yml) bei jedem Push auf `main`
-> automatisch.
+> **Aktivierung:** Der Workflow [`pages.yml`](.github/workflows/pages.yml)
+> aktiviert GitHub Pages automatisch (`configure-pages` mit `enablement: true`)
+> und deployt bei jedem Push auf `main`. Sollte das in deiner Org durch
+> Richtlinien unterbunden sein, Pages einmalig manuell aktivieren:
+> **Settings → Pages → Build and deployment → Source: „GitHub Actions"**.
 
 ---
 

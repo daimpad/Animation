@@ -36,6 +36,10 @@ jobs:
 
       - name: Pages konfigurieren
         uses: actions/configure-pages@v5
+        with:
+          # Aktiviert GitHub Pages automatisch (Build-Typ "GitHub Actions"),
+          # falls es im Repo noch nicht eingerichtet ist – kein manueller Schritt nötig.
+          enablement: true
 
       - name: Artefakt hochladen
         uses: actions/upload-pages-artifact@v3
