@@ -105,6 +105,8 @@
              placeholder="Pfad/URL, z. B. ../outputs/lottie/color_morph.json"
              value="../outputs/lottie/color_morph.json" />
       <button id="loadPathBtn" class="secondary">🔗 Pfad laden</button>
+      <button id="exSvgBtn" class="secondary">🌀 Spiral-SVG</button>
+      <button id="exLottieBtn" class="secondary">🟩 Color-Morph (Lottie)</button>
       <button id="playPauseBtn" class="secondary" disabled>⏸ Pause</button>
       <button id="bgBtn" class="secondary">🏁 Hintergrund</button>
     </div>
@@ -128,6 +130,8 @@
     const fileInput = document.getElementById("fileInput");
     const pathInput = document.getElementById("pathInput");
     const loadPathBtn = document.getElementById("loadPathBtn");
+    const exSvgBtn = document.getElementById("exSvgBtn");
+    const exLottieBtn = document.getElementById("exLottieBtn");
     const playPauseBtn = document.getElementById("playPauseBtn");
     const bgBtn = document.getElementById("bgBtn");
     const stage = document.getElementById("stage");
@@ -202,9 +206,9 @@
       reader.readAsText(file);
     });
 
-    loadPathBtn.addEventListener("click", async () => {
-      const path = pathInput.value.trim();
+    async function loadPath(path) {
       if (!path) return;
+      pathInput.value = path;
       setStatus("Lade " + path + " …");
       try {
         const resp = await fetch(path);
@@ -218,7 +222,11 @@
           true
         );
       }
-    });
+    }
+
+    loadPathBtn.addEventListener("click", () => loadPath(pathInput.value.trim()));
+    exSvgBtn.addEventListener("click", () => loadPath("../outputs/svg/circle_to_spiral.svg"));
+    exLottieBtn.addEventListener("click", () => loadPath("../outputs/lottie/color_morph.json"));
 
     playPauseBtn.addEventListener("click", () => {
       if (!lottieAnim) return;
