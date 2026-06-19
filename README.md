@@ -119,6 +119,8 @@ animation-pipeline/
 │   └── test_pipeline.py
 ├── preview/              # Browser-Viewer für SVG/Lottie
 │   └── index.html
+├── pages/                # Galerie/Landing-Seite für GitHub Pages
+│   └── index.html
 ├── outputs/              # Generierte Animationen
 │   ├── svg/
 │   └── lottie/
@@ -133,12 +135,31 @@ animation-pipeline/
 
 ---
 
+## 🌐 Live-Demo (GitHub Pages)
+
+Eine Galerie mit den Beispiel-Animationen und dem interaktiven Viewer wird per
+GitHub Actions auf GitHub Pages veröffentlicht:
+
+**➡️ https://daimpad.github.io/Animation/** (Galerie) ·
+**https://daimpad.github.io/Animation/preview/** (Viewer)
+
+Die Galerie zeigt die SVG-Animation direkt eingebettet und rendert das
+Lottie-Beispiel über `lottie-web`.
+
+> **Einmalig aktivieren:** In **Settings → Pages → Build and deployment** als
+> *Source* **„GitHub Actions"** wählen. Danach deployt der Workflow
+> [`pages.yml`](.github/workflows/pages.yml) bei jedem Push auf `main`
+> automatisch.
+
+---
+
 ## 🤖 Automatisierung (GitHub Actions)
 
-Das Repository enthält zwei Workflows unter `.github/workflows/`:
+Das Repository enthält folgende Workflows unter `.github/workflows/`:
 
-- **`ci.yml`** – führt bei jedem Push/PR alle vier Pipeline-Skripte als Smoke-Test aus.
+- **`ci.yml`** – führt bei jedem Push/PR die pytest-Suite und einen Pipeline-Smoke-Test aus.
 - **`generate.yml`** – wird ausgelöst, sobald Dateien in `inputs/prompts/` geändert werden. Er generiert für jeden Prompt automatisch SVG/Lottie, validiert/optimiert die Ergebnisse und committet sie zurück nach `outputs/`.
+- **`pages.yml`** – deployt die Galerie + Viewer auf GitHub Pages (Push auf `main`).
 
 > Hinweis: Für `generate.yml` werden Schreibrechte benötigt. Diese sind im Workflow über `permissions: contents: write` gesetzt; alternativ unter **Settings → Actions → General → Workflow permissions** *Read and write permissions* aktivieren.
 
