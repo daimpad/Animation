@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎬 Animation Pipeline – Vorschau</title>
+  <!-- lottie-web (bodymovin) vom CDN -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"></script>
+  <style>
+    :root {
+      --bg: #1e1e2e;
+      --panel: #27293d;
+      --accent: #7c6cff;
+      --text: #e4e4f0;
+      --muted: #9a9ab0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      padding: 1rem 1.5rem;
+      background: var(--panel);
+      border-bottom: 1px solid #00000033;
+    }
+    header h1 { margin: 0; font-size: 1.2rem; }
+    header p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.85rem; }
+    main { flex: 1; display: flex; flex-direction: column; padding: 1.5rem; gap: 1rem; }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .controls > * { font-size: 0.9rem; }
+    button, label.filebtn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button.secondary { background: #3a3c55; }
+    input[type="text"] {
+      flex: 1;
+      min-width: 220px;
+      padding: 0.5rem 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #3a3c55;
+      background: #1a1b28;
+      color: var(--text);
+    }
+    input[type="file"] { display: none; }
+    #stage {
+      flex: 1;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px dashed #3a3c55;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    #stage.dragover { border-color: var(--accent); background: #2a2c44; }
+    #stage.checkerboard {
+      background-image:
+        linear-gradient(45deg, #2a2a3a 25%, transparent 25%),
+        linear-gradient(-45deg, #2a2a3a 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #2a2a3a 75%),
+        linear-gradient(-45deg, transparent 75%, #2a2a3a 75%);
+      background-size: 24px 24px;
+      background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    }
+    #render { max-width: 100%; max-height: 70vh; }
+    #render svg { max-width: 100%; max-height: 70vh; }
+    .hint { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 2rem; }
+    #status { font-size: 0.85rem; color: var(--muted); min-height: 1.2em; }
+    .error { color: #ff7a90 !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎬 Animation Pipeline – Vorschau</h1>
+    <p>SVG- und Lottie-Animationen im Browser ansehen. Datei wählen, hierher ziehen oder Pfad laden.</p>
+  </header>
+
+  <main>
+    <div class="controls">
+      <label class="filebtn">
+        📂 Datei wählen (.svg / .json)
+        <input type="file" id="fileInput" accept=".svg,.json,application/json,image/svg+xml" />
+      </label>
+      <input type="text" id="pathInput"
+             placeholder="Pfad/URL, z. B. ../outputs/lottie/color_morph.json"
+             value="../outputs/lottie/color_morph.json" />
+      <button id="loadPathBtn" class="secondary">🔗 Pfad laden</button>
+      <button id="playPauseBtn" class="secondary" disabled>⏸ Pause</button>
+      <button id="bgBtn" class="secondary">🏁 Hintergrund</button>
+    </div>
+    <div id="status"></div>
+
+    <div id="stage" class="checkerboard">
+      <div class="hint" id="hint">
+        Noch nichts geladen.<br />
+        Wähle eine <strong>.svg</strong>- oder <strong>.json</strong>-Datei (Lottie),
+        ziehe sie hierher, oder lade einen Pfad.<br /><br />
+        <em>Tipp:</em> Für „Pfad laden" das Repo per
+        <code>python -m http.server</code> ausliefern und
+        <code>http://localhost:8000/preview/</code> öffnen
+        (direkter Datei-Aufruf blockiert das Laden via Browser-Sicherheitsrichtlinien).
+      </div>
+      <div id="render"></div>
+    </div>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const pathInput = document.getElementById("pathInput");
+    const loadPathBtn = document.getElementById("loadPathBtn");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const bgBtn = document.getElementById("bgBtn");
+    const stage = document.getElementById("stage");
+    const render = document.getElementById("render");
+    const hint = document.getElementById("hint");
+    const statusEl = document.getElementById("status");
+
+    let lottieAnim = null;
+    let isPlaying = true;
+
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg;
+      statusEl.classList.toggle("error", isError);
+    }
+
+    function clearStage() {
+      if (lottieAnim) {
+        lottieAnim.destroy();
+        lottieAnim = null;
+      }
+      render.innerHTML = "";
+      playPauseBtn.disabled = true;
+      hint.style.display = "none";
+    }
+
+    function showSvg(svgText) {
+      clearStage();
+      render.innerHTML = svgText;
+      setStatus("SVG geladen.");
+    }
+
+    function showLottie(data) {
+      clearStage();
+      try {
+        lottieAnim = lottie.loadAnimation({
+          container: render,
+          renderer: "svg",
+          loop: true,
+          autoplay: true,
+          animationData: data,
+        });
+        isPlaying = true;
+        playPauseBtn.textContent = "⏸ Pause";
+        playPauseBtn.disabled = false;
+        setStatus("Lottie-Animation geladen.");
+      } catch (e) {
+        setStatus("Fehler beim Rendern der Lottie-Datei: " + e.message, true);
+      }
+    }
+
+    function handleContent(name, text) {
+      const lower = (name || "").toLowerCase();
+      const trimmed = text.trimStart();
+      if (lower.endsWith(".svg") || trimmed.startsWith("<")) {
+        showSvg(text);
+      } else {
+        // Als Lottie-JSON behandeln
+        try {
+          showLottie(JSON.parse(text));
+        } catch (e) {
+          setStatus("Konnte Datei nicht als SVG oder Lottie-JSON erkennen.", true);
+        }
+      }
+    }
+
+    fileInput.addEventListener("change", (ev) => {
+      const file = ev.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => handleContent(file.name, reader.result);
+      reader.onerror = () => setStatus("Datei konnte nicht gelesen werden.", true);
+      reader.readAsText(file);
+    });
+
+    loadPathBtn.addEventListener("click", async () => {
+      const path = pathInput.value.trim();
+      if (!path) return;
+      setStatus("Lade " + path + " …");
+      try {
+        const resp = await fetch(path);
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const text = await resp.text();
+        handleContent(path, text);
+      } catch (e) {
+        setStatus(
+          "Laden fehlgeschlagen (" + e.message +
+          "). Repo per lokalem Server ausliefern und /preview/ öffnen.",
+          true
+        );
+      }
+    });
+
+    playPauseBtn.addEventListener("click", () => {
+      if (!lottieAnim) return;
+      isPlaying = !isPlaying;
+      isPlaying ? lottieAnim.play() : lottieAnim.pause();
+      playPauseBtn.textContent = isPlaying ? "⏸ Pause" : "▶ Play";
+    });
+
+    bgBtn.addEventListener("click", () => stage.classList.toggle("checkerboard"));
+
+    // Drag & Drop
+    ["dragenter", "dragover"].forEach((evt) =>
+      stage.addEventListener(evt, (e) => {
+        e.preventDefault();
+        stage.classList.add("dragover");
+      })
+    );
+    ["dragleave", "drop"].forEach((evt) =>
+      stage.addEventListener(evt, (e) => {
+        e.preventDefault();
+        stage.classList.remove("dragover");
+      })
+    );
+    stage.addEventListener("drop", (e) => {
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => handleContent(file.name, reader.result);
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
