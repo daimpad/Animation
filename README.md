@@ -171,7 +171,14 @@ Eine Galerie mit den Beispiel-Animationen und dem interaktiven Viewer wird per
 GitHub Actions auf GitHub Pages veröffentlicht:
 
 **➡️ https://daimpad.github.io/Animation/** (Galerie) ·
+**https://daimpad.github.io/Animation/builder.html** (No-Code-Builder) ·
 **https://daimpad.github.io/Animation/preview/** (Viewer)
+
+Der **No-Code-Builder** (`pages/builder.html`) erzeugt einfache SVG-Animationen
+per Formular (Form, Farbe, Bewegung, Drehung, Skalierung, Farbwechsel,
+Ausblenden), zeigt eine Live-Vorschau, bietet **SVG-Download** und gibt die
+passende **YAML-Spec** aus – die SVG-Logik ist identisch zu `scripts/templates.py`
+(per Test abgesichert).
 
 Die Galerie zeigt die SVG-Animation direkt eingebettet und rendert das
 Lottie-Beispiel über `lottie-web`.

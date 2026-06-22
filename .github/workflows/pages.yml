@@ -31,6 +31,7 @@ jobs:
         run: |
           mkdir -p _site/preview
           cp pages/index.html _site/index.html          # Galerie/Landing-Seite
+          cp pages/builder.html _site/builder.html       # No-Code-Builder
           cp preview/index.html _site/preview/index.html # Interaktiver Viewer
           cp -r outputs _site/outputs                    # Beispiel-Animationen
 
