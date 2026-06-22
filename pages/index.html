@@ -118,6 +118,30 @@
         Quelle: <a href="outputs/lottie/color_morph.json">color_morph.json</a>
       </div>
     </section>
+
+    <!-- Spec-Beispiel: SVG (ohne LLM) -->
+    <section class="card">
+      <h2>⚡ Bounce (SVG, aus Spec)</h2>
+      <p>Aus <code>inputs/specs/bounce.yaml</code> – ganz ohne LLM: bewegen, pulsieren, Farbe wechseln.</p>
+      <div class="stage">
+        <object type="image/svg+xml" data="outputs/svg/bounce.svg" aria-label="Bounce-Animation">
+          <img src="outputs/svg/bounce.svg" alt="Bounce-Animation" />
+        </object>
+      </div>
+      <div class="meta">
+        Spec: <a href="inputs/specs/bounce.yaml">bounce.yaml</a>
+      </div>
+    </section>
+
+    <!-- Spec-Beispiel: Lottie (ohne LLM) -->
+    <section class="card">
+      <h2>🟨 Spinner (Lottie, aus Spec)</h2>
+      <p>Aus <code>inputs/specs/spinner.json</code> – rotierendes Quadrat, Grün → Gelb.</p>
+      <div class="stage"><div id="lottie-spinner"></div></div>
+      <div class="meta">
+        Spec: <a href="inputs/specs/spinner.json">spinner.json</a>
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -126,23 +150,27 @@
   </footer>
 
   <script>
-    // Lottie-Beispiel laden (funktioniert über HTTP, z. B. GitHub Pages)
-    fetch("outputs/lottie/color_morph.json")
-      .then((r) => r.json())
-      .then((data) =>
-        lottie.loadAnimation({
-          container: document.getElementById("lottie"),
-          renderer: "svg",
-          loop: true,
-          autoplay: true,
-          animationData: data,
-        })
-      )
-      .catch((e) => {
-        document.getElementById("lottie").innerHTML =
-          '<p style="color:#9a9ab2;font-size:.85rem;padding:1rem;text-align:center">' +
-          "Lottie konnte nicht geladen werden (" + e.message + ").</p>";
-      });
+    // Lottie-Beispiel(e) laden (funktioniert über HTTP, z. B. GitHub Pages)
+    function loadLottie(containerId, path) {
+      fetch(path)
+        .then((r) => r.json())
+        .then((data) =>
+          lottie.loadAnimation({
+            container: document.getElementById(containerId),
+            renderer: "svg",
+            loop: true,
+            autoplay: true,
+            animationData: data,
+          })
+        )
+        .catch((e) => {
+          document.getElementById(containerId).innerHTML =
+            '<p style="color:#9a9ab2;font-size:.85rem;padding:1rem;text-align:center">' +
+            "Lottie konnte nicht geladen werden (" + e.message + ").</p>";
+        });
+    }
+    loadLottie("lottie", "outputs/lottie/color_morph.json");
+    loadLottie("lottie-spinner", "outputs/lottie/spinner.json");
   </script>
 </body>
 </html>
