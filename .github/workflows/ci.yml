@@ -41,3 +41,9 @@ jobs:
 
       - name: Optimize SVG
         run: python scripts/optimize_svg.py outputs/svg/circle_to_spiral.svg
+
+      - name: Generate from spec (Vorlagen, ohne LLM)
+        run: |
+          python scripts/generate_from_spec.py inputs/specs/bounce.yaml outputs/svg/bounce.svg
+          python scripts/generate_from_spec.py inputs/specs/spinner.json outputs/lottie/spinner.json
+          python scripts/validate_json.py outputs/lottie/spinner.json

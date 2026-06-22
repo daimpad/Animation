@@ -1,0 +1,16 @@
+# Einfache SVG-Animation: ein Kreis bewegt sich, pulsiert und wechselt die Farbe.
+format: svg
+width: 200
+height: 200
+background: "#0f0f1e"
+duration: 2
+loop: true
+shape:
+  type: circle
+  size: 30
+  color: "#3498db"
+  position: [40, 100]
+animations:
+  - { type: move, to: [160, 100] }
+  - { type: scale, to: 1.6 }
+  - { type: color, to: "#e74c3c" }

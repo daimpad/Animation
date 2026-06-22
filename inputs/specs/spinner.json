@@ -1,0 +1,19 @@
+{
+  "format": "lottie",
+  "width": 200,
+  "height": 200,
+  "fps": 60,
+  "duration": 2,
+  "loop": true,
+  "name": "Spinner",
+  "shape": {
+    "type": "rect",
+    "size": [80, 80],
+    "color": "#2ecc71",
+    "position": [100, 100]
+  },
+  "animations": [
+    { "type": "rotate", "by": 360 },
+    { "type": "color", "to": "#f1c40f" }
+  ]
+}

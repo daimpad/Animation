@@ -39,7 +39,34 @@ Erstelle eine SVG-Animation:
 - Exportiere als SVG.
 ```
 
-### 2. LLM generiert Code
+### 2a. Ohne LLM: Animationen aus einer Spec (Vorlagen)
+Für **einfache Standardanimationen** (bewegen, drehen, skalieren/pulsieren,
+Farbe wechseln, ein-/ausblenden) brauchst du kein LLM. Beschreibe die Animation
+in einer kleinen YAML- oder JSON-**Spec** und erzeuge daraus deterministisch
+valides SVG bzw. Lottie:
+
+```yaml
+# inputs/specs/bounce.yaml
+format: svg
+duration: 2
+shape: { type: circle, size: 30, color: "#3498db", position: [40, 100] }
+animations:
+  - { type: move,  to: [160, 100] }
+  - { type: scale, to: 1.6 }
+  - { type: color, to: "#e74c3c" }
+```
+
+```bash
+python scripts/generate_from_spec.py inputs/specs/bounce.yaml outputs/svg/bounce.svg
+python scripts/generate_from_spec.py inputs/specs/spinner.json outputs/lottie/spinner.json
+```
+
+**Animationstypen:** `move`, `rotate`, `scale`, `color`, `fade` (beliebig
+kombinierbar). **Formen:** `circle`, `rect`. Das Ausgabeformat ergibt sich aus
+`format:` in der Spec oder aus der Dateiendung (`.svg`/`.json`). Die Bausteine
+stecken in [`scripts/templates.py`](scripts/templates.py).
+
+### 2b. LLM generiert Code
 Die `generate_*`-Skripte sprechen automatisch ein **lokales Ollama** an: Sie lesen den
 Prompt aus der Datei, schicken ihn an das Modell und extrahieren den SVG- bzw.
 Lottie-Code aus der Antwort. Ist Ollama **nicht erreichbar** (oder liefert keine
@@ -108,8 +135,11 @@ Lottie-Animationen rendert (Lottie via `lottie-web` vom CDN).
 animation-pipeline/
 ├── inputs/               # Eingabedateien
 │   ├── prompts/          # Textdateien mit Animation-Beschreibungen
+│   ├── specs/            # YAML/JSON-Specs für Vorlagen-Animationen (ohne LLM)
 │   └── templates/        # Vorlagen für SVG/Lottie
 ├── scripts/              # Python-Skripte
+│   ├── templates.py      # Parametrische Vorlagen (SVG/Lottie, ohne LLM)
+│   ├── generate_from_spec.py  # Animation aus einer Spec erzeugen
 │   ├── llm.py            # Optionale Ollama-Anbindung (nur stdlib)
 │   ├── generate_svg.py
 │   ├── generate_lottie.py
