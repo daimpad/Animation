@@ -48,13 +48,17 @@ def _infer_format(spec: dict, output_file: str | None) -> str:
     )
 
 
-def generate_from_spec(spec_file: str, output_file: str | None = None) -> str:
-    """Generiert die Animation und schreibt sie. Gibt den Ausgabepfad zurück."""
-    spec = load_spec(spec_file)
-    fmt = _infer_format(spec, output_file)
+def render_spec(spec: dict, output_file: str | None = None, fmt: str | None = None) -> str:
+    """Rendert eine bereits geladene Spec (dict) und schreibt die Datei.
+
+    Gibt den Ausgabepfad zurück. ``fmt`` überschreibt ggf. das Format; sonst
+    wird es aus ``spec['format']`` oder der Dateiendung abgeleitet.
+    """
+    if not fmt:
+        fmt = _infer_format(spec, output_file)
 
     if output_file is None:
-        stem = Path(spec_file).stem
+        stem = spec.get("name", "animation")
         output_file = (
             f"outputs/svg/{stem}.svg" if fmt == "svg" else f"outputs/lottie/{stem}.json"
         )
@@ -67,8 +71,14 @@ def generate_from_spec(spec_file: str, output_file: str | None = None) -> str:
     else:
         out.write_text(json.dumps(build_lottie(spec), indent=2))
 
-    print(f"✅ {fmt.upper()} aus Spec generiert: {out}")
+    print(f"✅ {fmt.upper()} generiert: {out}")
     return str(out)
+
+
+def generate_from_spec(spec_file: str, output_file: str | None = None) -> str:
+    """Lädt eine Spec-Datei, rendert sie und gibt den Ausgabepfad zurück."""
+    spec = load_spec(spec_file)
+    return render_spec(spec, output_file)
 
 
 if __name__ == "__main__":

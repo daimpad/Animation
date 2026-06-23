@@ -66,6 +66,28 @@ kombinierbar). **Formen:** `circle`, `rect`. Das Ausgabeformat ergibt sich aus
 `format:` in der Spec oder aus der Dateiendung (`.svg`/`.json`). Die Bausteine
 stecken in [`scripts/templates.py`](scripts/templates.py).
 
+### 2a-CLI: Komfortables Kommandozeilen-Tool
+Statt Skripte einzeln aufzurufen, bündelt das **CLI** (`scripts/cli.py`, auf Basis
+von [Typer](https://typer.tiangolo.com/)) Erstellen, Validieren und Optimieren:
+
+```bash
+# Animation aus Parametern (ohne LLM)
+python scripts/cli.py new --shape circle --position 20,100 --move 180,100 \
+    --color-to "#ff0000" --duration 3 -o outputs/svg/demo.svg
+
+# aus einer Spec-Datei
+python scripts/cli.py from-spec inputs/specs/bounce.yaml -o outputs/svg/bounce.svg
+
+# validieren / optimieren
+python scripts/cli.py validate outputs/lottie/spinner.json
+python scripts/cli.py optimize outputs/svg/bounce.svg
+
+python scripts/cli.py --help   # alle Befehle/Optionen
+```
+
+`new` unterstützt die Animationen `--move x,y`, `--rotate GRAD`, `--scale FAKTOR`,
+`--color-to HEX`, `--fade DECKKRAFT` (kombinierbar) für `--shape circle|rect`.
+
 ### 2b. LLM generiert Code
 Die `generate_*`-Skripte sprechen automatisch ein **lokales Ollama** an: Sie lesen den
 Prompt aus der Datei, schicken ihn an das Modell und extrahieren den SVG- bzw.
@@ -138,6 +160,7 @@ animation-pipeline/
 │   ├── specs/            # YAML/JSON-Specs für Vorlagen-Animationen (ohne LLM)
 │   └── templates/        # Vorlagen für SVG/Lottie
 ├── scripts/              # Python-Skripte
+│   ├── cli.py            # Kommandozeilen-Tool (Typer): new/from-spec/validate/optimize
 │   ├── templates.py      # Parametrische Vorlagen (SVG/Lottie, ohne LLM)
 │   ├── generate_from_spec.py  # Animation aus einer Spec erzeugen
 │   ├── llm.py            # Optionale Ollama-Anbindung (nur stdlib)
