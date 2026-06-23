@@ -45,6 +45,30 @@ def test_new_requires_an_animation(tmp_path):
     assert result.exit_code != 0  # BadParameter
 
 
+def test_new_image_embeds_data_url(tmp_path):
+    img = tmp_path / "pic.png"
+    img.write_bytes(b"\x89PNG\r\n\x1a\n" + b"\x00" * 16)  # Dummy-PNG-Bytes
+    out = tmp_path / "img.svg"
+    result = runner.invoke(
+        cli.app, ["new", "--image", str(img), "--rotate", "360", "--fade", "0.2", "-o", str(out)]
+    )
+    assert result.exit_code == 0, result.output
+    text = out.read_text()
+    minidom.parseString(text)
+    assert "<image" in text
+    assert "data:image/png;base64," in text
+
+
+def test_new_image_rejects_lottie(tmp_path):
+    img = tmp_path / "pic.png"
+    img.write_bytes(b"\x89PNG\r\n\x1a\n")
+    out = tmp_path / "img.json"
+    result = runner.invoke(
+        cli.app, ["new", "--image", str(img), "--rotate", "90", "--format", "lottie", "-o", str(out)]
+    )
+    assert result.exit_code != 0  # BadParameter: Bild nur als SVG
+
+
 def test_from_spec_command(tmp_path):
     spec = tmp_path / "s.json"
     spec.write_text(json.dumps({

@@ -85,6 +85,32 @@ def test_build_svg_unknown_animation_raises():
         templates.build_svg(_spec_svg([{"type": "explode"}]))
 
 
+def test_build_svg_image_embeds_src_and_skips_fill():
+    svg = templates.build_svg(
+        {
+            "format": "svg",
+            "shape": {"type": "image", "size": [120, 80], "src": "cat.png", "position": [100, 100]},
+            "animations": [{"type": "rotate", "by": 360}, {"type": "color", "to": "#fff"}, {"type": "fade", "to": 0.2}],
+        }
+    )
+    minidom.parseString(svg)
+    assert "<image" in svg
+    assert 'href="cat.png"' in svg
+    assert 'type="rotate"' in svg
+    assert 'attributeName="opacity"' in svg
+    # Farbwechsel (fill) gilt nicht für Bilder
+    assert 'attributeName="fill"' not in svg
+
+
+def test_build_lottie_rejects_image():
+    import pytest
+
+    with pytest.raises(ValueError):
+        templates.build_lottie(
+            {"shape": {"type": "image", "src": "x.png"}, "animations": [{"type": "move", "to": [1, 1]}]}
+        )
+
+
 # --- Lottie ---------------------------------------------------------------- #
 def test_build_lottie_has_required_keys_and_validates(tmp_path):
     data = templates.build_lottie(

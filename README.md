@@ -87,6 +87,13 @@ python scripts/cli.py --help   # alle Befehle/Optionen
 
 `new` unterstützt die Animationen `--move x,y`, `--rotate GRAD`, `--scale FAKTOR`,
 `--color-to HEX`, `--fade DECKKRAFT` (kombinierbar) für `--shape circle|rect`.
+Mit `--image PFAD` animierst du stattdessen ein **eigenes Bild** (wird als
+Data-URL ins SVG eingebettet → self-contained):
+
+```bash
+python scripts/cli.py new --image logo.png --size 120x80 --rotate 360 \
+    --duration 4 -o outputs/svg/logo_spin.svg
+```
 
 ### 2b. LLM generiert Code
 Die `generate_*`-Skripte sprechen automatisch ein **lokales Ollama** an: Sie lesen den
@@ -201,7 +208,9 @@ Der **No-Code-Builder** (`pages/builder.html`) erzeugt einfache SVG-Animationen
 per Formular (Form, Farbe, Bewegung, Drehung, Skalierung, Farbwechsel,
 Ausblenden), zeigt eine Live-Vorschau, bietet **SVG-Download** und gibt die
 passende **YAML-Spec** aus – die SVG-Logik ist identisch zu `scripts/templates.py`
-(per Test abgesichert).
+(per Test abgesichert). Du kannst auch **ein eigenes Bild hochladen** (PNG/JPG/SVG)
+und es animieren – die Datei wird dabei nur lokal im Browser verarbeitet (kein
+Upload) und im exportierten SVG eingebettet.
 
 Die Galerie zeigt die SVG-Animation direkt eingebettet und rendert das
 Lottie-Beispiel über `lottie-web`.
