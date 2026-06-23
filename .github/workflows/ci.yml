@@ -47,3 +47,9 @@ jobs:
           python scripts/generate_from_spec.py inputs/specs/bounce.yaml outputs/svg/bounce.svg
           python scripts/generate_from_spec.py inputs/specs/spinner.json outputs/lottie/spinner.json
           python scripts/validate_json.py outputs/lottie/spinner.json
+
+      - name: CLI smoke-test
+        run: |
+          python scripts/cli.py new --shape circle --position 20,100 --move 160,100 --color-to "#ff0000" -o outputs/svg/cli_demo.svg
+          python scripts/cli.py new --shape rect --size 80x60 --rotate 360 --format lottie -o outputs/lottie/cli_demo.json
+          python scripts/cli.py validate outputs/lottie/cli_demo.json
