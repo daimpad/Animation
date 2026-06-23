@@ -13,6 +13,8 @@ Beispiele:
     python scripts/cli.py optimize outputs/svg/bounce.svg
 """
 from pathlib import Path
+import base64
+import mimetypes
 import sys
 
 import typer
@@ -49,6 +51,13 @@ def _size(value: str):
     return float(value)
 
 
+def _data_url(path: Path) -> str:
+    """Liest eine Bilddatei und bettet sie als Data-URL ein (self-contained SVG)."""
+    mime = mimetypes.guess_type(str(path))[0] or "image/png"
+    data = Path(path).read_bytes()
+    return f"data:{mime};base64," + base64.b64encode(data).decode("ascii")
+
+
 # --------------------------------------------------------------------------- #
 # Befehle
 # --------------------------------------------------------------------------- #
@@ -57,6 +66,7 @@ def new(
     shape: str = typer.Option("circle", help="Form: circle | rect"),
     size: str = typer.Option("40", help="Radius (circle) bzw. Zahl/'BxH' (rect)"),
     color: str = typer.Option("#3498db", help="Füllfarbe (Hex)"),
+    image: Path = typer.Option(None, "--image", help="Eigenes Bild (PNG/JPG/SVG) animieren statt Form"),
     position: str = typer.Option("100,100", help="Mittelpunkt 'x,y'"),
     duration: float = typer.Option(2.0, help="Dauer in Sekunden"),
     loop: bool = typer.Option(True, "--loop/--no-loop", help="Endlosschleife"),
@@ -89,18 +99,25 @@ def new(
             "Mindestens eine Animation angeben (--move/--rotate/--scale/--color-to/--fade)."
         )
 
+    shape_dict = {
+        "type": shape,
+        "size": _size(size),
+        "color": color,
+        "position": _xy(position),
+    }
+    if image is not None:
+        if (fmt or "").lower() == "lottie" or (output and str(output).endswith(".json")):
+            raise typer.BadParameter("Bild-Animationen werden nur als SVG unterstützt.")
+        shape_dict["type"] = "image"
+        shape_dict["src"] = _data_url(image)
+
     spec = {
         "width": width,
         "height": height,
         "duration": duration,
         "loop": loop,
         "background": background,
-        "shape": {
-            "type": shape,
-            "size": _size(size),
-            "color": color,
-            "position": _xy(position),
-        },
+        "shape": shape_dict,
         "animations": animations,
     }
     gfs.render_spec(spec, str(output) if output else None, fmt)

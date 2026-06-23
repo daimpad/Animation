@@ -32,7 +32,7 @@ Spec-Modell (eine Form + eine Liste von Animationen):
 from __future__ import annotations
 
 ANIMATION_TYPES = ("move", "color", "rotate", "scale", "fade")
-SHAPE_TYPES = ("circle", "rect")
+SHAPE_TYPES = ("circle", "rect", "image")
 
 
 # --------------------------------------------------------------------------- #
@@ -138,8 +138,9 @@ def build_svg(spec: dict) -> str:
     anims = _by_type(spec.get("animations", []))
 
     # Form zentriert am Ursprung (0,0) – Transforme wirken so um die Mitte.
+    # Farbwechsel (fill) gilt nur für Formen, nicht für Bilder.
     shape_children = []
-    if "color" in anims:
+    if "color" in anims and stype != "image":
         shape_children.append(
             _svg_animate("fill", color, anims["color"].get("to", color), dur, loop)
         )
@@ -151,6 +152,14 @@ def build_svg(spec: dict) -> str:
     if stype == "circle":
         r = _shape_size(shape)
         shape_el = f'<circle cx="0" cy="0" r="{_num(r)}" fill="{color}">{inner}</circle>'
+    elif stype == "image":
+        w, h = _shape_size(shape)
+        src = shape.get("src", "")
+        shape_el = (
+            f'<image href="{src}" x="{_num(-w / 2)}" y="{_num(-h / 2)}" '
+            f'width="{_num(w)}" height="{_num(h)}" '
+            f'preserveAspectRatio="xMidYMid meet">{inner}</image>'
+        )
     else:
         w, h = _shape_size(shape)
         shape_el = (
@@ -220,6 +229,10 @@ def build_lottie(spec: dict) -> dict:
     stype = shape.get("type", "circle")
     if stype not in SHAPE_TYPES:
         raise ValueError(f"Unbekannter Form-Typ: {stype!r}. Erlaubt: {SHAPE_TYPES}")
+    if stype == "image":
+        raise ValueError(
+            "Bild-Animationen werden derzeit nur als SVG unterstützt (nicht Lottie)."
+        )
     cx, cy = shape.get("position", [width / 2, height / 2])
     color = shape.get("color", "#3498db")
     anims = _by_type(spec.get("animations", []))

@@ -65,11 +65,12 @@
     <div class="panel">
       <h2>Form</h2>
       <div class="row"><label for="shapeType">Typ</label>
-        <select id="shapeType"><option value="circle">Kreis</option><option value="rect">Rechteck</option></select>
+        <select id="shapeType"><option value="circle">Kreis</option><option value="rect">Rechteck</option><option value="image">Bild (Upload)</option></select>
       </div>
-      <div class="row"><label for="size">Größe (Radius / B×H)</label><input type="number" id="size" value="30" min="1" /></div>
-      <div class="row" id="rowSizeH" style="display:none"><label for="sizeH">Höhe (Rechteck)</label><input type="number" id="sizeH" value="60" min="1" /></div>
-      <div class="row"><label for="color">Farbe</label><input type="color" id="color" value="#3498db" /></div>
+      <div class="row" id="rowImage" style="display:none"><label for="imageFile">Bilddatei (PNG/JPG/SVG)</label><input type="file" id="imageFile" accept="image/*" /></div>
+      <div class="row"><label for="size">Größe (Radius / Breite)</label><input type="number" id="size" value="30" min="1" /></div>
+      <div class="row" id="rowSizeH" style="display:none"><label for="sizeH">Höhe</label><input type="number" id="sizeH" value="60" min="1" /></div>
+      <div class="row" id="rowColor"><label for="color">Farbe</label><input type="color" id="color" value="#3498db" /></div>
       <div class="row"><label for="posX">Position X</label><input type="number" id="posX" value="100" /></div>
       <div class="row"><label for="posY">Position Y</label><input type="number" id="posY" value="100" /></div>
 
@@ -143,12 +144,16 @@
       const a = s.animations;
 
       let inner = "";
-      if (a.color) inner += animate("fill", color, a.color.to, dur, loop);
+      // Farbwechsel (fill) gilt nur für Formen, nicht für Bilder.
+      if (a.color && s.shape.type !== "image") inner += animate("fill", color, a.color.to, dur, loop);
       if (a.fade) inner += animate("opacity", "1", num(a.fade.to), dur, loop);
 
       let shapeEl;
       if (s.shape.type === "circle") {
         shapeEl = `<circle cx="0" cy="0" r="${num(s.shape.size)}" fill="${color}">${inner}</circle>`;
+      } else if (s.shape.type === "image") {
+        const w = s.shape.size, h = s.shape.h;
+        shapeEl = `<image href="${s.shape.src}" x="${num(-w / 2)}" y="${num(-h / 2)}" width="${num(w)}" height="${num(h)}" preserveAspectRatio="xMidYMid meet">${inner}</image>`;
       } else {
         const w = s.shape.size, h = s.shape.h;
         shapeEl = `<rect x="${num(-w / 2)}" y="${num(-h / 2)}" width="${num(w)}" height="${num(h)}" fill="${color}">${inner}</rect>`;
@@ -171,20 +176,25 @@
     }
 
     function buildYaml(s) {
+      const isImage = s.shape.type === "image";
       const lines = ["format: svg", `width: ${s.width}`, `height: ${s.height}`, `duration: ${s.duration}`, `loop: ${s.loop}`];
       if (s.background) lines.push(`background: "${s.background}"`);
-      const sizeStr = s.shape.type === "rect" ? `[${s.shape.size}, ${s.shape.h}]` : `${s.shape.size}`;
       lines.push("shape:");
       lines.push(`  type: ${s.shape.type}`);
-      lines.push(`  size: ${sizeStr}`);
-      lines.push(`  color: "${s.shape.color}"`);
+      if (isImage) {
+        lines.push(`  size: [${s.shape.size}, ${s.shape.h}]`);
+        lines.push('  src: "<eingebettetes Bild – im heruntergeladenen SVG enthalten>"');
+      } else {
+        lines.push(`  size: ${s.shape.type === "rect" ? `[${s.shape.size}, ${s.shape.h}]` : `${s.shape.size}`}`);
+        lines.push(`  color: "${s.shape.color}"`);
+      }
       lines.push(`  position: [${s.shape.position[0]}, ${s.shape.position[1]}]`);
       lines.push("animations:");
       const a = s.animations;
       if (a.move) lines.push(`  - { type: move, to: [${a.move.to[0]}, ${a.move.to[1]}] }`);
       if (a.rotate) lines.push(`  - { type: rotate, by: ${a.rotate.by} }`);
       if (a.scale) lines.push(`  - { type: scale, to: ${a.scale.to} }`);
-      if (a.color) lines.push(`  - { type: color, to: "${a.color.to}" }`);
+      if (a.color && !isImage) lines.push(`  - { type: color, to: "${a.color.to}" }`);
       if (a.fade) lines.push(`  - { type: fade, to: ${a.fade.to} }`);
       return lines.join("\n") + "\n";
     }
@@ -208,6 +218,7 @@
           size: Number($("size").value),
           h: Number($("sizeH").value),
           color: $("color").value,
+          src: uploadedImage,
           position: [Number($("posX").value), Number($("posY").value)],
         },
         animations,
@@ -215,12 +226,22 @@
     }
 
     let currentSvg = "";
+    let uploadedImage = "";
     function render() {
-      $("rowSizeH").style.display = $("shapeType").value === "rect" ? "" : "none";
+      const type = $("shapeType").value;
+      const isImage = type === "image";
+      $("rowSizeH").style.display = (type === "rect" || isImage) ? "" : "none";
+      $("rowImage").style.display = isImage ? "" : "none";
+      $("rowColor").style.display = isImage ? "none" : "";
       const spec = readSpec();
       currentSvg = buildSvg(spec);
-      $("stage").innerHTML = currentSvg;
       $("yaml").value = buildYaml(spec);
+      if (isImage && !spec.shape.src) {
+        $("stage").innerHTML =
+          '<p style="color:#9a9ab2;font-size:.85rem;padding:2rem;text-align:center">Bitte oben eine Bilddatei auswählen.</p>';
+      } else {
+        $("stage").innerHTML = currentSvg;
+      }
     }
 
     function download(filename, text, type) {
@@ -235,6 +256,15 @@
       el.addEventListener("input", render);
       el.addEventListener("change", render);
     });
+    // Bild-Upload: Datei lokal als Data-URL einlesen (nichts wird hochgeladen)
+    $("imageFile").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) { uploadedImage = ""; render(); return; }
+      const reader = new FileReader();
+      reader.onload = () => { uploadedImage = reader.result; render(); };
+      reader.readAsDataURL(file);
+    });
+
     $("download").addEventListener("click", () => download("animation.svg", currentSvg, "image/svg+xml"));
     $("copySvg").addEventListener("click", () => navigator.clipboard.writeText(currentSvg));
     $("copyYaml").addEventListener("click", () => navigator.clipboard.writeText($("yaml").value));
