@@ -45,6 +45,15 @@ def test_new_requires_an_animation(tmp_path):
     assert result.exit_code != 0  # BadParameter
 
 
+def test_new_defaults_to_svg_without_output_or_format(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(cli.app, ["new", "--rotate", "90"])
+    assert result.exit_code == 0, result.output
+    out = tmp_path / "outputs" / "svg" / "animation.svg"
+    assert out.exists()
+    minidom.parseString(out.read_text())
+
+
 def test_new_image_embeds_data_url(tmp_path):
     img = tmp_path / "pic.png"
     img.write_bytes(b"\x89PNG\r\n\x1a\n" + b"\x00" * 16)  # Dummy-PNG-Bytes

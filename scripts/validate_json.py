@@ -1,6 +1,5 @@
 import sys
 import json
-from pathlib import Path
 
 
 def validate_lottie_json(file_path: str) -> bool:

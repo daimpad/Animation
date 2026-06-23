@@ -21,7 +21,6 @@ import typer
 
 # scripts/ in den Importpfad
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import templates  # noqa: E402
 import generate_from_spec as gfs  # noqa: E402
 import validate_json as vj  # noqa: E402
 import optimize_svg as osvg  # noqa: E402
@@ -120,6 +119,9 @@ def new(
         "shape": shape_dict,
         "animations": animations,
     }
+    # Ohne Ausgabe/Format-Angabe standardmäßig SVG erzeugen.
+    if not fmt and not output:
+        fmt = "svg"
     gfs.render_spec(spec, str(output) if output else None, fmt)
 
 
